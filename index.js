@@ -140,6 +140,7 @@ function session(options){
     req.sessionID = generateId(req);
     req.session = new Session(req);
     req.session.cookie = new Cookie(cookie);
+    req.session.token = 's:' + signature.sign(req.sessionID, req.secret);
   };
 
   var storeImplementsTouch = typeof store.touch === 'function';
@@ -197,7 +198,7 @@ function session(options){
         return;
       }
 
-      setcookie(req, res, name, req.sessionID, secrets[0], cookie.data);
+      setcookie(res, name, req.sessionID, secrets[0], cookie.data);
     });
 
     // proxy end() to commit the session
@@ -620,10 +621,9 @@ function issecure(req, trustProxy) {
  * @private
  */
 
-function setcookie(req, res, name, val, secret, options) {
+function setcookie(res, name, val, secret, options) {
   var signed = 's:' + signature.sign(val, secret);
   var data = cookie.serialize(name, signed, options);
-  req.session.token = signed;
 
   debug('set-cookie %s', data);
 
