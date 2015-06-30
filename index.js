@@ -623,7 +623,7 @@ function issecure(req, trustProxy) {
 function setcookie(req, res, name, val, secret, options) {
   var signed = 's:' + signature.sign(val, secret);
   var data = cookie.serialize(name, signed, options);
-  req.token = signed;
+  req.session.token = signed;
 
   debug('set-cookie %s', data);
 
