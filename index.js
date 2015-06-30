@@ -176,7 +176,7 @@ function session(options){
     req.sessionStore = store;
 
     // get the session ID from the cookie
-    var cookieId = req.sessionID = getcookie(req, name, secrets);
+    var token = req.sessionID = getToken(req, name, secrets);
 
     // set-cookie
     onHeaders(res, function(){
@@ -358,7 +358,7 @@ function session(options){
         return false;
       }
 
-      return !saveUninitializedSession && cookieId !== req.sessionID
+      return !saveUninitializedSession && token !== req.sessionID
         ? isModified(req.session)
         : !isSaved(req.session)
     }
@@ -371,7 +371,7 @@ function session(options){
         return false;
       }
 
-      return cookieId === req.sessionID && !shouldSave(req);
+      return token === req.sessionID && !shouldSave(req);
     }
 
     // determine if cookie should be set on response
@@ -386,7 +386,7 @@ function session(options){
         return true;
       }
 
-      return cookieId != req.sessionID
+      return token != req.sessionID
         ? saveUninitializedSession || isModified(req.session)
         : req.session.cookie.expires != null && isModified(req.session);
     }
@@ -433,7 +433,7 @@ function session(options){
       next();
     });
   };
-};
+}
 
 /**
  * Generate a session ID for a new session.
@@ -453,7 +453,7 @@ function generateSessionId(sess) {
  * @private
  */
 
-function getcookie(req, name, secrets) {
+function getToken(req, name, secrets) {
   var header = req.headers.cookie;
   var raw;
   var val;
@@ -505,6 +505,54 @@ function getcookie(req, name, secrets) {
         }
       } else {
         debug('cookie unsigned')
+      }
+    }
+  }
+
+  if(!val && req.headers) {
+    raw = req.headers[name];
+    if (raw) {
+      if (raw.substr(0, 2) === 's:') {
+        val = unsigncookie(raw.slice(2), secrets);
+
+        if (val === false) {
+          debug('header signature invalid');
+          val = undefined;
+        }
+      } else {
+        debug('header unsigned')
+      }
+    }
+  }
+
+  if(!val && req.query) {
+    raw = req.query[name];
+    if (raw) {
+      if (raw.substr(0, 2) === 's:') {
+        val = unsigncookie(raw.slice(2), secrets);
+
+        if (val === false) {
+          debug('query signature invalid');
+          val = undefined;
+        }
+      } else {
+        debug('query unsigned')
+      }
+    }
+  }
+
+  if(!val && req.body) {
+    raw = req.body[name];
+    if (raw) {
+      if (raw.substr(0, 2) === 's:') {
+        val = unsigncookie(raw.slice(2), secrets);
+
+        if (val === false) {
+          debug('body signature invalid');
+          val = undefined;
+        }
+      } else {
+        debug('body unsigned')
       }
     }
   }
