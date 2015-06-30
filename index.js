@@ -18,12 +18,12 @@ var deprecate = require('depd')('express-session');
 var parseUrl = require('parseurl');
 var uid = require('uid-safe').sync
   , onHeaders = require('on-headers')
-  , signature = require('cookie-signature')
+  , signature = require('cookie-signature');
 
 var Session = require('./session/session')
   , MemoryStore = require('./session/memory')
   , Cookie = require('./session/cookie')
-  , Store = require('./session/store')
+  , Store = require('./session/store');
 
 // environment
 
@@ -61,7 +61,7 @@ var warning = 'Warning: connect.session() MemoryStore is not\n'
 /* istanbul ignore next */
 var defer = typeof setImmediate === 'function'
   ? setImmediate
-  : function(fn){ process.nextTick(fn.bind.apply(fn, arguments)) }
+  : function(fn){ process.nextTick(fn.bind.apply(fn, arguments)) };
 
 /**
  * Setup session store with the given `options`.
@@ -82,7 +82,7 @@ var defer = typeof setImmediate === 'function'
  */
 
 function session(options){
-  var options = options || {}
+  options = options || {}
   //  name - previously "options.key"
     , name = options.name || options.key || 'connect.sid'
     , store = options.store || new MemoryStore
@@ -197,7 +197,7 @@ function session(options){
         return;
       }
 
-      setcookie(res, name, req.sessionID, secrets[0], cookie.data);
+      setcookie(req, res, name, req.sessionID, secrets[0], cookie.data);
     });
 
     // proxy end() to commit the session
@@ -620,9 +620,10 @@ function issecure(req, trustProxy) {
  * @private
  */
 
-function setcookie(res, name, val, secret, options) {
+function setcookie(req, res, name, val, secret, options) {
   var signed = 's:' + signature.sign(val, secret);
   var data = cookie.serialize(name, signed, options);
+  req.token = signed;
 
   debug('set-cookie %s', data);
 
