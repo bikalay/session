@@ -82,9 +82,9 @@ var defer = typeof setImmediate === 'function'
  */
 
 function session(options){
-  options = options || {}
+  options = options || {};
   //  name - previously "options.key"
-    , name = options.name || options.key || 'connect.sid'
+    var name = options.name || options.key || 'connect.sid'
     , store = options.store || new MemoryStore
     , cookie = options.cookie || {}
     , trustProxy = options.proxy
